@@ -6,8 +6,6 @@ import mime from "mime-types";
 import { Storage } from "@google-cloud/storage";
 import { env } from "../utils/Env";
 
-
-
 const storage = new Storage({
 	keyFilename: env.GOOGLE_APPLICATION_CREDENTIALS
 });
@@ -58,7 +56,7 @@ export async function updateUserPhoto(request: Request, response: Response) {
 
 			publicUrl = "https://" + publicUrl;
 
-			user.photo = publicUrl;
+			// user.photo = publicUrl;
 			await userRepository.save(user);
 
 			return response.status(200).json({ photo: publicUrl });

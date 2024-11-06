@@ -15,7 +15,7 @@ import {
 	updatePassword,
 	sendVerificationEmail,
 	verifyEmail
-} from "./app/controllers/requestResetPassword";
+} from "./app/controllers/resetPassword";
 import { updateUserPhoto } from "./app/controllers/updatePhoto";
 
 // import { testIntent } from "./app/controllers/interactWithAi";
