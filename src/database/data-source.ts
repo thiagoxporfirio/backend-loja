@@ -3,11 +3,13 @@ import { env } from "../app/utils/Env";
 import { Config } from "../app/entity/Configs";
 
 import { User } from "../app/entity/User";
+import { Product } from "../app/entity/Product";
 
 
 const entities =[
 	Config,
 	User,
+	Product
 ];
 
 const config: any = env.isDevelopment
