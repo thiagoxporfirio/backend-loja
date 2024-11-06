@@ -1,7 +1,9 @@
 import {
 	Column,
 	Entity,
-	PrimaryGeneratedColumn
+	PrimaryGeneratedColumn,
+	CreateDateColumn,
+	UpdateDateColumn
 } from "typeorm";
 
 @Entity("users")
@@ -11,36 +13,26 @@ export class User {
 	id: number;
 
 	@Column()
-	name: string;
+	first_name: string;
 
-	@Column({ unique: true })
-	cpf_cnpj: string;
+	@Column()
+	last_name: string;
 
 	@Column({ unique: true })
 	email: string;
 
-	@Column({ nullable: true })
-	email_verified_at: Date;
-
-	@Column()
-	password_reset_count: number;
-
 	@Column()
 	password: string;
 
-	@Column()
-	photo: string;
-
 	@Column({ nullable: true })
-	remember_token: string | undefined;
+	remember_token: string | null;
 
-	@Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+	@Column({ type: "timestamp", nullable: true })
+	email_verified_at: Date | null;
+
+	@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
 	created_at: Date;
 
-	@Column({
-		type: "timestamp",
-		default: () => "CURRENT_TIMESTAMP",
-		onUpdate: "CURRENT_TIMESTAMP"
-	})
+	@UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
 	updated_at: Date;
 }

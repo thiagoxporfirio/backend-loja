@@ -5,7 +5,7 @@ import {
 	updateUser,
 	getUser,
 	deleteUser
-} from "./app/controllers/createUser";
+} from "./app/controllers/User";
 import { loginUser } from "./app/controllers/loginUser";
 import tokenMiddleware from "./app/Middleware/Authorization";
 import { health } from "./app/controllers/health";
