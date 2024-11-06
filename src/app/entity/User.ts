@@ -13,6 +13,9 @@ export class User {
 	id: number;
 
 	@Column()
+	role: string;
+	
+	@Column()
 	first_name: string;
 
 	@Column()
