@@ -3,6 +3,7 @@ import { AppDataSource } from "../../database/data-source";
 import { Product } from "../entity/Product";
 import AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
+import { MoreThanOrEqual } from "typeorm";
 
 // Configuração do S3
 const s3 = new AWS.S3({
@@ -190,5 +191,29 @@ export async function getAllProducts(request: Request, response: Response) {
 	} catch (error) {
 		console.error(error);
 		return response.status(500).json({ message: "Erro ao obter os produtos." });
+	}
+}
+
+
+// Função para obter produtos dos últimos 45 dias /new-products
+export async function getRecentProducts(request: Request, response: Response) {
+	try {
+		const productRepository = AppDataSource.getRepository(Product);
+
+		// Calcula a data de 45 dias atrás
+		const fortyFiveDaysAgo = new Date();
+		fortyFiveDaysAgo.setDate(fortyFiveDaysAgo.getDate() - 45);
+
+		// Busca produtos onde o created_at é maior ou igual à data de 45 dias atrás
+		const recentProducts = await productRepository.find({
+			where: {
+				created_at: MoreThanOrEqual(fortyFiveDaysAgo)
+			}
+		});
+
+		return response.status(200).json(recentProducts);
+	} catch (error) {
+		console.error(error);
+		return response.status(500).json({ message: "Erro ao obter produtos recentes." });
 	}
 }
