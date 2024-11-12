@@ -28,6 +28,7 @@ import {
 	createProduct,
 	deleteProduct,
 	getAllProducts,
+	getRecentProducts,
 	updateProduct
 } from "./app/controllers/products";
 import { createUser, deleteUser, getUser, updateUser } from "./app/controllers/user";
@@ -74,6 +75,7 @@ router.post("admin/products", upload.array("images", 5), createProduct);
 router.put("admin/products/:id", updateProduct);
 router.delete("admin/products/:id", deleteProduct);
 router.get("/products", getAllProducts);
+router.get("/new-products", getRecentProducts);
 
 // ======================
 // support Services
