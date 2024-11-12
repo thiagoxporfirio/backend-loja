@@ -30,12 +30,8 @@ import {
 	getAllProducts,
 	updateProduct
 } from "./app/controllers/products";
-import {
-	createUser,
-	deleteUser,
-	getUser,
-	updateUser
-} from "./app/controllers/User";
+import { createUser, deleteUser, getUser, updateUser } from "./app/controllers/user";
+
 
 export const router = Router();
 

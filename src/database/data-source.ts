@@ -1,7 +1,6 @@
 import { DataSource } from "typeorm";
 import { env } from "../app/utils/Env";
 import { Config } from "../app/entity/Configs";
-
 import { User } from "../app/entity/User";
 import { Product } from "../app/entity/Product";
 
