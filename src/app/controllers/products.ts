@@ -1,6 +1,15 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../../database/data-source";
 import { Product } from "../entity/Product";
+import AWS from "aws-sdk";
+import { v4 as uuidv4 } from "uuid";
+
+// Configuração do S3
+const s3 = new AWS.S3({
+	accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+	region: process.env.AWS_REGION
+});
 
 export async function createProduct(request: Request, response: Response) {
 	try {
@@ -13,8 +22,7 @@ export async function createProduct(request: Request, response: Response) {
 			details,
 			category,
 			fit_info,
-			care_instructions,
-			images
+			care_instructions
 		} = request.body;
 
 		const productRepository = AppDataSource.getRepository(Product);
@@ -29,11 +37,37 @@ export async function createProduct(request: Request, response: Response) {
 		product.category = category;
 		product.fit_info = fit_info;
 		product.care_instructions = care_instructions;
-		product.images = images;
+
+		// Upload das imagens para o S3 e obtenção das URLs
+		const uploadedImageUrls: string[] = [];
+		const files = request.files as Express.Multer.File[]; // Assegurando que request.files é um array de arquivos
+
+		if (files && files.length > 0) {
+			for (const file of files) {
+				// Configura o upload para o S3
+				const uploadParams = {
+					Bucket: process.env.AWS_BUCKET_NAME || "", // Certifique-se de configurar o nome do seu bucket no .env
+					Key: `products/${uuidv4()}-${file.originalname}`, // Nome do arquivo no S3
+					Body: file.buffer,
+					ACL: "public-read", // Defina a permissão como pública
+					ContentType: file.mimetype
+				};
+
+				// Faz o upload da imagem para o S3
+				const uploadResult = await s3.upload(uploadParams).promise();
+				uploadedImageUrls.push(uploadResult.Location); // Armazena a URL retornada
+			}
+		}
+
+		// Armazena as URLs das imagens no banco de dados
+		product.images = uploadedImageUrls;
 
 		await productRepository.save(product);
 
-		return response.status(201).json({ message: "Produto criado com sucesso!", product });
+		return response.status(201).json({
+			message: "Produto criado com sucesso!",
+			product
+		});
 	} catch (error) {
 		console.error(error);
 		return response.status(500).json({ message: "Erro ao criar o produto." });
@@ -52,13 +86,12 @@ export async function updateProduct(request: Request, response: Response) {
 			details,
 			category,
 			fit_info,
-			care_instructions,
-			images
+			care_instructions
 		} = request.body;
 
 		const productRepository = AppDataSource.getRepository(Product);
-
 		const product = await productRepository.findOneBy({ id: productId });
+
 		if (!product) {
 			return response.status(404).json({ message: "Produto não encontrado." });
 		}
@@ -73,14 +106,55 @@ export async function updateProduct(request: Request, response: Response) {
 		if (category) product.category = category;
 		if (fit_info) product.fit_info = fit_info;
 		if (care_instructions) product.care_instructions = care_instructions;
-		if (images) product.images = images;
+
+		// Remove as imagens antigas do S3, se houver
+		if (product.images && product.images.length > 0) {
+			for (const oldImageUrl of product.images) {
+				const key = oldImageUrl.split("/").pop(); // Extrai a chave do arquivo da URL
+				if (key) {
+					await s3
+						.deleteObject({
+							Bucket: process.env.AWS_BUCKET_NAME || "",
+							Key: `products/${key}`
+						})
+						.promise();
+				}
+			}
+		}
+
+		// Verificar se novas imagens foram enviadas e fazer o upload
+		const files = request.files as Express.Multer.File[]; // Verifica se request.files contém imagens
+		const uploadedImageUrls: string[] = [];
+
+		if (files && files.length > 0) {
+			for (const file of files) {
+				const uploadParams = {
+					Bucket: process.env.AWS_BUCKET_NAME || "",
+					Key: `products/${uuidv4()}-${file.originalname}`, // Gera um nome único para cada imagem
+					Body: file.buffer,
+					ACL: "public-read",
+					ContentType: file.mimetype
+				};
+
+				// Faz o upload da imagem e armazena a URL retornada
+				const uploadResult = await s3.upload(uploadParams).promise();
+				uploadedImageUrls.push(uploadResult.Location);
+			}
+
+			// Atualiza o campo `images` do produto com as novas URLs
+			product.images = uploadedImageUrls;
+		}
 
 		await productRepository.save(product);
 
-		return response.status(200).json({ message: "Produto atualizado com sucesso!", product });
+		return response
+			.status(200)
+			.json({ message: "Produto atualizado com sucesso!", product });
 	} catch (error) {
 		console.error(error);
-		return response.status(500).json({ message: "Erro ao atualizar o produto." });
+		return response
+			.status(500)
+			.json({ message: "Erro ao atualizar o produto." });
 	}
 }
 
@@ -97,7 +171,9 @@ export async function deleteProduct(request: Request, response: Response) {
 
 		await productRepository.remove(product);
 
-		return response.status(200).json({ message: "Produto deletado com sucesso!" });
+		return response
+			.status(200)
+			.json({ message: "Produto deletado com sucesso!" });
 	} catch (error) {
 		console.error(error);
 		return response.status(500).json({ message: "Erro ao deletar o produto." });

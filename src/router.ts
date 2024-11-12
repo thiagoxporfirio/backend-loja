@@ -31,7 +31,10 @@ import {
 	updateProduct
 } from "./app/controllers/products";
 import { createUser, deleteUser, getUser, updateUser } from "./app/controllers/user";
+import multer from "multer";
 
+
+const upload = multer();
 
 export const router = Router();
 
@@ -67,7 +70,7 @@ router.put("/edit/:id", tokenMiddleware, updateUser);
 // ======================
 // Products
 // ======================
-router.post("admin/products", createProduct);
+router.post("admin/products", upload.array("images", 5), createProduct);
 router.put("admin/products/:id", updateProduct);
 router.delete("admin/products/:id", deleteProduct);
 router.get("/products", getAllProducts);
