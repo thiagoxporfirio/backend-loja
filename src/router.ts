@@ -33,7 +33,7 @@ import {
 } from "./app/controllers/products";
 import { createUser, deleteUser, getUser, updateUser } from "./app/controllers/user";
 import multer from "multer";
-
+import { createPaymentIntent, handlePaymentSuccess } from "./app/controllers/stripePayments";
 
 const upload = multer();
 
@@ -90,6 +90,17 @@ router.post("/support", supportUser);
 // ======================
 // Stripe Payments Services
 // ======================
+// router.post(
+//   "/create-checkout-session",
+//   [
+//     body("price_id").isString().withMessage("Price ID must be a string")
+//   ],
+//   createCheckoutSession
+// );
+
+router.post("/create-payment-intent", createPaymentIntent);
+router.post("/payment-success", handlePaymentSuccess);
+
 // router.post(
 // 	"/create-checkout-session",
 // 	[
